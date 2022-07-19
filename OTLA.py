@@ -1,8 +1,14 @@
 import tkinter as tk
-from tkinter import filedialog, Text
+from tkinter import filedialog, Text, ttk
 import os
 
 root = tk.Tk()
+root.iconbitmap('icon.ico')
+root.title('FNF Maru3D : Obj to Lua Array Converter')
+root.resizable(False, False)
+
+root.columnconfigure(0, weight=1)
+root.columnconfigure(1, weight=3)
 
 files = []
 
@@ -14,14 +20,14 @@ def addObj():
     files.clear()
     filename =filedialog.askopenfilename(initialdir="/", title="Select 3D Model", 
     filetypes=((".obj", "*.obj"), (".txt", "*.txt"),("all files", "*.*")))
-    files.append(filename)
+    if filename == "":
+        files.append('No File Loaded')
+    else:
+        files.append(filename)    
 
     print(files)
 
     for widget in names.winfo_children():
-        widget.destroy()
-    
-    for widget in preview.winfo_children():
         widget.destroy()
 
     label = tk.Label(names, text=files, bg="#ffffff")
@@ -32,9 +38,6 @@ def convertObj():
     for file in files:
 
         if not file == "":
-
-            for widget in preview.winfo_children():
-                widget.destroy()
 
             with open(file) as f:
                 lines = f.readlines()
@@ -48,7 +51,7 @@ def convertObj():
 
                     if line.startswith("v "):
                         finalline = line.lstrip("v ")
-                        exporttext.write("{ ")
+                        exporttext.write("{")
                         for char in finalline:
                             
                             if char == (" "):
@@ -56,7 +59,7 @@ def convertObj():
                             else:
                                 exporttext.write(char)
 
-                        exporttext.write("}, \n")
+                        exporttext.write("},")
 
                 exporttext.write("};\n")
 
@@ -65,9 +68,9 @@ def convertObj():
                     
                     if line.startswith("f "):
                         finalline = line.lstrip("f ")
-                        exporttext.write("{ ")
+                        exporttext.write("{")
 
-                        exporttext.write("{ ")
+                        exporttext.write("{")
                         for char in finalline:
 
                             if char == ("/"):
@@ -77,23 +80,19 @@ def convertObj():
                             else:
                                 exporttext.write(char)
 
-                        exporttext.write("}, ")
-                        exporttext.write("}, \n")
+                        exporttext.write("},")
+                        exporttext.write("},")
 
                 exporttext.write("};\n")
                 exporttext.write("return {vertex, faces};")
                 print("export finished successfully")
 
-                label = tk.Label(preview, text='Export Finished Succesfully!!!!\n', bg="#ffffff")
-                label.pack()
-
                 with open('model.lua') as previewtext:
                     lines = previewtext.readlines()
+                    ttk.Label(scrollable_frame, text='Exported File Preview:\n').pack(fill='both')
 
                     for line in lines:
-                        label = tk.Label(preview, text=line, bg="#ffffff")
-                        label.pack()
-
+                        ttk.Label(scrollable_frame, text=line, anchor='w').pack(fill='both')
 
 canvas = tk.Canvas(root, height = 700, width=700, bg="#371142")
 canvas.pack()
@@ -108,15 +107,31 @@ preview  = tk.Frame(frame, bg="#9692bb")
 preview.place(relwidth=0.8, relheight=0.6, relx=0.1, rely=0.15)
 
 frame2 = tk.Frame(frame, bg="#2b0a4f")
-frame2.place(relwidth=1, relheight=0.1, relx=0, rely=0.8)
+frame2.place(relwidth=1, relheight=0.12, relx=0, rely=0.8)
 
-openFile = tk.Button(frame2, text="Open 3D Model File", padx=10, pady=5, fg="white", bg = "black", command=addObj)
+openFile = tk.Button(frame2, text="Open 3D Model File", padx=100, pady=5, fg="white", bg = "black", command=addObj)
 openFile.pack()
 
-convertFile = tk.Button(frame2, text="Convert to .lua", padx=10, pady=5, fg="white", bg = "black", command=convertObj)
+convertFile = tk.Button(frame2, text="Convert To Lua", padx=112, pady=5, fg="white", bg = "black", command=convertObj)
 convertFile.pack()
 
-root.iconbitmap('icon.ico')
-root.title('FNF Maru3D : Obj to Lua Array Converter')
+container = ttk.Frame(preview)
+canvas = tk.Canvas(container)
+scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+scrollable_frame = ttk.Frame(canvas)
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(
+        scrollregion=canvas.bbox("all")
+    )
+)
+
+canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+canvas.configure(yscrollcommand=scrollbar.set)
+
+container.pack()
+canvas.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="y")
 
 root.mainloop()
