@@ -11,20 +11,30 @@ def addObj():
     for widget in names.winfo_children():
         widget.destroy()
 
+    files.clear()
     filename =filedialog.askopenfilename(initialdir="/", title="Select 3D Model", 
     filetypes=((".obj", "*.obj"), (".txt", "*.txt"),("all files", "*.*")))
     files.append(filename)
-    print(filename)
 
-    for file in files:
-        label = tk.Label(names, text=file, bg="#ffffff")
-        label.pack()
+    print(files)
+
+    for widget in names.winfo_children():
+        widget.destroy()
+    
+    for widget in preview.winfo_children():
+        widget.destroy()
+
+    label = tk.Label(names, text=files, bg="#ffffff")
+    label.pack()
 
 def convertObj():
 
     for file in files:
 
         if not file == "":
+
+            for widget in preview.winfo_children():
+                widget.destroy()
 
             with open(file) as f:
                 lines = f.readlines()
@@ -74,9 +84,16 @@ def convertObj():
                 exporttext.write("return {vertex, faces};")
                 print("export finished successfully")
 
-                for x in range(0, 10):
-                    label = tk.Label(preview, text='Export Finished Succesfully!!!!', bg="#ffffff")
-                    label.pack()
+                label = tk.Label(preview, text='Export Finished Succesfully!!!!\n', bg="#ffffff")
+                label.pack()
+
+                with open('model.lua') as previewtext:
+                    lines = previewtext.readlines()
+
+                    for line in lines:
+                        label = tk.Label(preview, text=line, bg="#ffffff")
+                        label.pack()
+
 
 canvas = tk.Canvas(root, height = 700, width=700, bg="#371142")
 canvas.pack()
