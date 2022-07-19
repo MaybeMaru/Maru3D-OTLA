@@ -43,7 +43,7 @@ def convertObj():
                 lines = f.readlines()
 
             with open('model.lua', 'w') as exporttext:
-                exporttext.write("--Coverted using Maru3D OTLA\n")
+                exporttext.write("--Converted using Maru3D OTLA\n")
 
                 exporttext.write("vertex = {\n")
 
