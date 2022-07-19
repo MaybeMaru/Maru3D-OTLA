@@ -2,7 +2,7 @@
 OTLA is a simple python program created for my FNF Psych Lua 3D renderer project.
 It basically takes any .obj or .txt and converts it into a Lua array file.
 
-## Supports
+## Support
 * Vertex positions
 * Faces vertex
 
