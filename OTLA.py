@@ -84,7 +84,25 @@ def convertObj():
                         exporttext.write("},")
 
                 exporttext.write("};\n")
-                exporttext.write("return {vertex, faces};")
+
+                exporttext.write("normals = {\n")
+                for line in lines:
+                    if line.startswith("vn "):
+                        finalline = line.lstrip("vn ")
+                        exporttext.write("{")
+                        for char in finalline:
+                            
+                            if char == (" "):
+                                exporttext.write(",")
+                            else:
+                                exporttext.write(char)
+
+                        exporttext.write("},")
+
+                exporttext.write("};\n")
+
+                exporttext.write("return {vertex, faces, normals};")
+                
                 print("export finished successfully")
 
                 with open('export/model.lua') as previewtext:
@@ -115,9 +133,7 @@ openFile.pack()
 convertFile = tk.Button(frame2, text="Convert To Lua", padx=112, pady=5, fg="white", bg = "black", command=convertObj)
 convertFile.pack()
 
-files.append('No File Loaded')
-
-label = tk.Label(names, text=files, bg="#ffffff")
+label = tk.Label(names, text='{No File Loaded}', bg="#ffffff")
 label.pack()
 
 container = ttk.Frame(preview)
