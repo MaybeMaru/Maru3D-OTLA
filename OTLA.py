@@ -12,6 +12,8 @@ root.columnconfigure(1, weight=3)
 
 files = []
 
+version = 'Maru3D OTLA ' + 'v0.3'
+
 def addObj():
 
     for widget in names.winfo_children():
@@ -43,9 +45,9 @@ def convertObj():
                 lines = f.readlines()
 
             with open('export/model.lua', 'w') as exporttext:
-                exporttext.write("--Converted using Maru3D OTLA\n")
+                exporttext.write("--Converted using "+version+"\n")
 
-                exporttext.write("vertex = {\n")
+                exporttext.write("vertices = {\n")
 
                 for line in lines:
 
@@ -101,8 +103,24 @@ def convertObj():
 
                 exporttext.write("};\n")
 
-                exporttext.write("return {vertex, faces, normals};")
-                
+                exporttext.write("texturecoords = {\n")
+                for line in lines:
+                    if line.startswith("vt "):
+                        finalline = line.lstrip("vt ")
+                        exporttext.write("{")
+                        for char in finalline:
+                            
+                            if char == (" "):
+                                exporttext.write(",")
+                            else:
+                                exporttext.write(char)
+
+                        exporttext.write("},")
+
+                exporttext.write("};\n")
+
+                exporttext.write("return {vertices, faces, normals, texturecoords};")
+
                 print("export finished successfully")
 
                 with open('export/model.lua') as previewtext:
@@ -114,6 +132,9 @@ def convertObj():
 
 canvas = tk.Canvas(root, height = 700, width=700, bg="#371142")
 canvas.pack()
+
+canvas.create_text(10, 15, text=version, fill="white", font=('Arial 10'), anchor='w')
+canvas.pack(fill='both')
 
 frame = tk.Frame(root, bg="#725572")
 frame.place(relwidth=0.8, relheight=0.8, relx=0.1, rely=0.1)
