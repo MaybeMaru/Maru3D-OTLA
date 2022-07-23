@@ -42,7 +42,7 @@ def convertObj():
             with open(file) as f:
                 lines = f.readlines()
 
-            with open('model.lua', 'w') as exporttext:
+            with open('export/model.lua', 'w') as exporttext:
                 exporttext.write("--Converted using Maru3D OTLA\n")
 
                 exporttext.write("vertex = {\n")
@@ -87,7 +87,7 @@ def convertObj():
                 exporttext.write("return {vertex, faces};")
                 print("export finished successfully")
 
-                with open('model.lua') as previewtext:
+                with open('export/model.lua') as previewtext:
                     lines = previewtext.readlines()
                     ttk.Label(scrollable_frame, text='Exported File Preview:\n').pack(fill='both')
 
@@ -114,6 +114,11 @@ openFile.pack()
 
 convertFile = tk.Button(frame2, text="Convert To Lua", padx=112, pady=5, fg="white", bg = "black", command=convertObj)
 convertFile.pack()
+
+files.append('No File Loaded')
+
+label = tk.Label(names, text=files, bg="#ffffff")
+label.pack()
 
 container = ttk.Frame(preview)
 canvas = tk.Canvas(container)
