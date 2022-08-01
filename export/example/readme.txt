@@ -1,0 +1,1 @@
+Example of a cube with some solid colors
