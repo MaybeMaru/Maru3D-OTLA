@@ -3,7 +3,6 @@ from tabnanny import check
 import tkinter as tk
 from tkinter import filedialog, Text, ttk, messagebox
 import os
-#import easygui as e
 
 root = tk.Tk()
 root.iconbitmap('icon.ico')
@@ -15,6 +14,7 @@ root.columnconfigure(1, weight=3)
 
 #Files variables
 
+objsequence=[]
 objs = []
 mtls = []
 
@@ -35,8 +35,9 @@ CheckNormals = tk.IntVar()
 CheckTextureCoords = tk.IntVar()
 CheckMaterials = tk.IntVar()
 
-version = 'Maru3D OTLA ' + 'v0.4'
+version = 'Maru3D OTLA ' + 'v0.5'
 
+OBJSequenceerrortext= 'No OBJ Sequence Folder Loaded'
 OBJerrortext= 'No OBJ File Loaded'
 MTLerrortext= 'No MTL File Loaded'
 
@@ -44,6 +45,9 @@ errorReason = ''
 
 #Buttons make me go  Y E S
 #I suck at python lolololololololol
+def makeConsoleText(txt):
+    print(txt)
+    ttk.Label(scrollable_frame, text=txt, anchor='w').pack(fill='both')
 
 def clearWidgets():
     for widget in directoryOBJFrame.winfo_children():
@@ -59,6 +63,31 @@ def clearWidgets2():
     for widget in scrollable_frame.winfo_children():
         widget.destroy()
 
+def clearWidgets3():
+    for widget in directoryOBJSequenceFrame.winfo_children():
+        widget.destroy()
+
+    for widget in scrollable_frame.winfo_children():
+        widget.destroy()
+
+def addObjSequence():
+
+    clearWidgets3()
+
+    objsequence.clear()
+    filename =filedialog.askdirectory(initialdir="/", title="Select OBJ Sequence Frames Folder")
+    #filetypes=((".obj", "*.obj"), (".txt", "*.txt"),("all files", "*.*")))
+    if filename == "":
+        objsequence.append(OBJSequenceerrortext)
+    else:
+        objsequence.append(filename)
+
+    print(objsequence)
+
+    defaultOBJSequencetext = tk.Label(directoryOBJSequenceFrame, text=objsequence, bg="#ffffff")
+    defaultOBJSequencetext.pack(side=tk.LEFT, fill='both')
+
+
 def addObj():
     
     clearWidgets()
@@ -69,7 +98,7 @@ def addObj():
     if filename == "":
         objs.append(OBJerrortext)
     else:
-        objs.append(filename)    
+        objs.append(filename)
 
     print(objs)
 
@@ -93,6 +122,120 @@ def addMtl():
 
     print(mtls)
 
+def convertObjSequence():
+
+    for sequence in objsequence:
+        for path in os.listdir(sequence):
+            if os.path.isfile(os.path.join(sequence, path)):
+                name, extension = os.path.splitext(path)
+                if extension == ".obj":
+
+                    #sequence -> path without the file
+                    #path -> file name with extension
+                        #name -> name duh
+                        #extension -> extension dumbass
+                    folderobjframe = os.path.join(sequence, path) #this is var has the path of every frame to convert
+                    print(folderobjframe)
+
+                    with open(folderobjframe) as f:
+                        lines = f.readlines()
+
+                    dir = "export/"+"frames/"
+                    if not os.path.exists(dir):
+                        os.mkdir(dir)
+
+                    with open(dir+name+'.lua', 'w') as exporttext:
+                        exporttext.write("--Converted using "+version+"\n\n")
+
+                        if CheckMaterials.get() == 1:
+                            exporttext.write("local usematerials = true\n")
+                        else:
+                            exporttext.write("local usematerials = false\n")
+
+                        exporttext.write("local vertices = {}\n")
+                        exporttext.write("local faces = {}\n")
+                        exporttext.write("local normals = {}\n")
+                        exporttext.write("local texturecoords = {}\n\n")
+
+                        if CheckVerticies.get() == 1:
+                            exporttext.write("vertices = {\n")
+                            for line in lines:
+                                if line.startswith("v "):
+                                    finalline = line.lstrip("v ")
+                                    exporttext.write("{")
+                                    for char in finalline:
+                                        if char == (" "):
+                                            exporttext.write(",")
+                                        else:
+                                            exporttext.write(char)
+                                    exporttext.write("},")
+                            exporttext.write("};\n")
+                
+                        if CheckFaces.get() == 1 :
+                            exporttext.write("faces = {\n")
+                            for line in lines:
+
+                                if CheckMaterials.get() == 1:
+                                    if line.startswith("usemtl "):
+                                        material = line.lstrip("usemtl ")
+                                        material = material.rstrip()
+        
+                                if line.startswith("f "):
+                                    finalline = line.lstrip("f ")
+                                    finalline = finalline.rstrip()
+                                    finalline = finalline.replace('//','/')
+                                    exporttext.write("\n{")
+                                    exporttext.write("{")
+                                    for char in finalline:
+                                        if char == ("/"):
+                                            exporttext.write(",")
+                                        elif char == (" "):
+                                            exporttext.write("}, {")
+                                        else:
+                                            exporttext.write(char)
+                                    exporttext.write("},")
+        
+                                    if CheckMaterials.get() == 1:
+                                        exporttext.write('{"'+material+'"},')
+                            
+                                    exporttext.write("},")
+                            exporttext.write("};\n")
+
+                        if CheckNormals.get() == 1:
+                            exporttext.write("normals = {\n")
+                            for line in lines:
+                                if line.startswith("vn "):
+                                    finalline = line.lstrip("vn ")
+                                    exporttext.write("{")
+                                    for char in finalline:
+                                        if char == (" "):
+                                            exporttext.write(",")
+                                        else:
+                                            exporttext.write(char)
+                                    exporttext.write("},")
+                            exporttext.write("};\n")
+
+                        if CheckTextureCoords.get() == 1:
+                            exporttext.write("texturecoords = {\n")
+                            for line in lines:
+                                if line.startswith("vt "):
+                                    finalline = line.lstrip("vt ")
+                                    exporttext.write("{")
+                                    for char in finalline:
+                                        if char == (" "):
+                                           exporttext.write(",")
+                                        else:
+                                            exporttext.write(char)
+                                    exporttext.write("},")
+                            exporttext.write("};\n")
+
+                        exporttext.write("\nreturn {vertices, faces, normals, texturecoords, usematerials};")
+
+                        #print("Finished OBJ Sequence "+name+" Export")
+                        #ttk.Label(scrollable_frame, text="OBJ export finished as "+name+".lua", anchor='w').pack(fill='both')
+                    #instert converter shit
+                makeConsoleText("OBJ export finished as "+name+".lua")
+
 def convertObj():
 
     for obj in objs:
@@ -104,7 +247,14 @@ def convertObj():
             with open(obj) as f:
                 lines = f.readlines()
 
-            with open('export/model.lua', 'w') as exporttext:
+            file_dir_name = os.path.basename(obj)
+            file_dir_name = os.path.splitext(file_dir_name)[0]
+
+            dir = "export/"+file_dir_name
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+
+            with open(dir+'/model.lua', 'w') as exporttext:
                 exporttext.write("--Converted using "+version+"\n\n")
 
                 if CheckMaterials.get() == 1:
@@ -153,7 +303,10 @@ def convertObj():
                                 else:
                                     exporttext.write(char)
                             exporttext.write("},")
-                            exporttext.write('{"'+material+'"},')
+
+                            if CheckMaterials.get() == 1:
+                                exporttext.write('{"'+material+'"},')
+                            
                             exporttext.write("},")
                     exporttext.write("};\n")
 
@@ -198,7 +351,15 @@ def convertMtl():
         else:
             with open(mtl) as f:
                     lines = f.readlines()
-            with open('export/materials.lua', 'w') as exporttext:
+
+            file_dir_name = os.path.basename(mtl)
+            file_dir_name = os.path.splitext(file_dir_name)[0]
+
+            dir = "export/"+file_dir_name
+            if not os.path.exists(dir):
+                os.mkdir(dir)
+
+            with open(dir+'/materials.lua', 'w') as exporttext:
                 exporttext.write("--Converted using "+version+"\n\n")
 
                 exporttext.write("local materials = {}\n")
@@ -231,32 +392,41 @@ def convertMtl():
 canvas = tk.Canvas(root, height = 600, width=800, bg="#828282")
 canvas.pack()
 
+directoryOBJSequenceFrame = tk.Frame(root, bg="#bdbdbd")
+directoryOBJSequenceFrame.place(relwidth=0.5, relheight=0.07, x=30, y=40)
+
+buttonOBJSequenceFrame = tk.Frame(root, bg="#bdbdbd")
+buttonOBJSequenceFrame.place(relwidth=0.2, relheight=0.07, x=450, y=40)
+
 directoryOBJFrame = tk.Frame(root, bg="#bdbdbd")
-directoryOBJFrame.place(relwidth=0.5, relheight=0.07, x=30, y=40)
+directoryOBJFrame.place(relwidth=0.5, relheight=0.07, x=30, y=100)
 
 buttonOBJFrame = tk.Frame(root, bg="#bdbdbd")
-buttonOBJFrame.place(relwidth=0.2, relheight=0.07, x=450, y=40)
+buttonOBJFrame.place(relwidth=0.2, relheight=0.07, x=450, y=100)
 
 directoryMTLFrame = tk.Frame(root, bg="#bdbdbd")
-directoryMTLFrame.place(relwidth=0.5, relheight=0.07, x=30, y=100)
+directoryMTLFrame.place(relwidth=0.5, relheight=0.07, x=30, y=160)
 
 buttonMTLFrame = tk.Frame(root, bg="#bdbdbd")
-buttonMTLFrame.place(relwidth=0.2, relheight=0.07, x=450, y=100)
+buttonMTLFrame.place(relwidth=0.2, relheight=0.07, x=450, y=160)
 
 frame = tk.Frame(root, bg="#bdbdbd")
-frame.place(relwidth=0.5, relheight=0.7, x=30, y=160)
+frame.place(relwidth=0.5, relheight=0.4, x=30, y=235)
 
 framemtl = tk.Frame(root, bg="#bdbdbd")
-framemtl.place(relwidth=0.40, relheight=0.55, x=450, y=160)
+framemtl.place(relwidth=0.40, relheight=0.576, x=450, y=235)
 
-#exportButtonFrame = tk.Frame(root, bg="#bdbdbd")
-#exportButtonFrame.place(relwidth=0.40, relheight=0.05, x=450, y=510)
+exportOBJSequencebuttonFrame = tk.Frame(root, bg="#bdbdbd")
+exportOBJSequencebuttonFrame.place(relwidth=0.16, relheight=0.121, x=30, y=510)
 
 exportOBJbuttonFrame = tk.Frame(root, bg="#bdbdbd")
-exportOBJbuttonFrame.place(relwidth=0.20, relheight=0.121, x=450, y=510)
+exportOBJbuttonFrame.place(relwidth=0.16, relheight=0.121, x=167, y=510)
 
 exportMTLbuttonFrame = tk.Frame(root, bg="#bdbdbd")
-exportMTLbuttonFrame.place(relwidth=0.20, relheight=0.121, x=610, y=510)
+exportMTLbuttonFrame.place(relwidth=0.16, relheight=0.121, x=303, y=510)
+
+openOBJSequencefile = tk.Button(buttonOBJSequenceFrame, text="Open OBJ Sequence Folder", padx=100, pady=10, fg="black", bg = "white" , command=addObjSequence)
+openOBJSequencefile.pack()
 
 openOBJfile = tk.Button(buttonOBJFrame, text="Open OBJ File", padx=100, pady=10, fg="black", bg = "white" , command=addObj)
 openOBJfile.pack()
@@ -264,13 +434,13 @@ openOBJfile.pack()
 openMTLfile = tk.Button(buttonMTLFrame, text="Open MTL File", padx=100, pady=10, fg="black", bg = "white" , command=addMtl)
 openMTLfile.pack()
 
-#convertFile = tk.Button(exportButtonFrame, text="Convert All To Lua", padx=150, pady=5, fg="black", bg = "white", command=convertObj)
-#convertFile.pack()
-
-convertFile = tk.Button(exportOBJbuttonFrame, text="Convert Obj To Lua", padx=150, pady=30, fg="black", bg = "white", command=convertObj)
+convertFile = tk.Button(exportOBJSequencebuttonFrame, text="Convert OBJ Sequence", padx=150, pady=30, fg="black", bg = "white", command=convertObjSequence)
 convertFile.pack()
 
-convertFile = tk.Button(exportMTLbuttonFrame, text="Convert Mtl To Lua", padx=150, pady=30, fg="black", bg = "white", command=convertMtl)
+convertFile = tk.Button(exportOBJbuttonFrame, text="Convert OBJ", padx=150, pady=30, fg="black", bg = "white", command=convertObj)
+convertFile.pack()
+
+convertFile = tk.Button(exportMTLbuttonFrame, text="Convert MTL", padx=150, pady=30, fg="black", bg = "white", command=convertMtl)
 convertFile.pack()
 
 #Add Version Text
@@ -279,6 +449,9 @@ canvas.pack(fill='both')
 
 #Default Values At Start
 
+objsequence.append(OBJSequenceerrortext)
+defaultOBJSequencetext = tk.Label(directoryOBJSequenceFrame, text=objsequence, bg="#ffffff")
+defaultOBJSequencetext.pack(side=tk.LEFT, fill='both')
 objs.append(OBJerrortext)
 defaultOBJtext = tk.Label(directoryOBJFrame, text=objs, bg="#ffffff")
 defaultOBJtext.pack(side=tk.LEFT, fill='both')

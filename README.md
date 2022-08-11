@@ -1,6 +1,7 @@
 # Maru3D OTLA
 OTLA is a simple python program created for my FNF Psych Lua 3D renderer project.
-It basically takes any .obj and .mtl and converts it into a Lua array file.
+It basically takes any .obj or .mtl and converts it into a Lua array file.
+For animations it also can take folders with OBJ Sequence files.
 
 ## Support
 * Vertices
@@ -8,11 +9,17 @@ It basically takes any .obj and .mtl and converts it into a Lua array file.
 * Normals
 * Texture Coordinates
 * Diffuse Colored Materials
+* OBJ Sequences
 
 ## How to use
-After installing/compilling the program and opening it select your files to convert using the open buttons.
-Once the file has loaded click the Convert button and wait for it to convert, should normally be instant.
-Finally after it is converted a "model.lua" and "materials.lua" file will be created inside the "export" folder.
+### Converting OBJ files
+Select a OBJ file with the "Open OBJ File" button. Then check with the text boxes what you want to be exported to the model.
+If your model has textures mark the "Use Materials" checkbox.
+### Converting OBJ Sequence files
+Select a folder where to take the OBJ files from with the "Open OBJ Sequence Folder" button.
+The rest goes the same as with single OBJ files.
+### Converting MTL files
+Select a MTL file with the "Open MTL File" button. No settings are needed
 
 ### Credits:
 * Maru -> Coding
