@@ -47,7 +47,8 @@ errorReason = ''
 #I suck at python lolololololololol
 def makeConsoleText(txt):
     print(txt)
-    ttk.Label(scrollable_frame, text=txt, anchor='w').pack(fill='both')
+    ConsoleText = tk.Label(scrollable_frame, text=txt, anchor='w')
+    ConsoleText.pack(fill='both')
 
 def clearWidgets():
     for widget in directoryOBJFrame.winfo_children():
@@ -122,25 +123,20 @@ def addMtl():
 
     print(mtls)
 
-def convertObjSequence():
+def convertOBJcode(path, object, exportPlace):
+    if os.path.isfile(path):
 
-    for sequence in objsequence:
-        for path in os.listdir(sequence):
-            if os.path.isfile(os.path.join(sequence, path)):
-                name, extension = os.path.splitext(path)
+                name, extension = os.path.splitext(object)
+
                 if extension == ".obj":
 
-                    #sequence -> path without the file
-                    #path -> file name with extension
-                        #name -> name duh
-                        #extension -> extension dumbass
-                    folderobjframe = os.path.join(sequence, path) #this is var has the path of every frame to convert
+                    folderobjframe = path
                     print(folderobjframe)
 
                     with open(folderobjframe) as f:
                         lines = f.readlines()
 
-                    dir = "export/"+"frames/"
+                    dir = "export/"+ exportPlace
                     if not os.path.exists(dir):
                         os.mkdir(dir)
 
@@ -231,117 +227,24 @@ def convertObjSequence():
 
                         exporttext.write("\nreturn {vertices, faces, normals, texturecoords, usematerials};")
 
-                        #print("Finished OBJ Sequence "+name+" Export")
-                        #ttk.Label(scrollable_frame, text="OBJ export finished as "+name+".lua", anchor='w').pack(fill='both')
-                    #instert converter shit
-                makeConsoleText("OBJ export finished as "+name+".lua")
+                    makeConsoleText("OBJ export finished as "+name+".lua")
+                    makeConsoleText("In "+ dir+name+'.lua')
+
+def convertObjSequence():
+
+    for sequence in objsequence:
+        for path in os.listdir(sequence):
+            convertOBJcode(os.path.join(sequence, path), path,  "frames/")
 
 def convertObj():
 
     for obj in objs:
-
-        if objs[0] == OBJerrortext:
-            errorReason = OBJerrortext
-            messagebox.showerror('Error', 'Error: ' + errorReason)
-        else:
-            with open(obj) as f:
-                lines = f.readlines()
-
-            file_dir_name = os.path.basename(obj)
-            file_dir_name = os.path.splitext(file_dir_name)[0]
-
-            dir = "export/"+file_dir_name
-            if not os.path.exists(dir):
-                os.mkdir(dir)
-
-            with open(dir+'/model.lua', 'w') as exporttext:
-                exporttext.write("--Converted using "+version+"\n\n")
-
-                if CheckMaterials.get() == 1:
-                    exporttext.write("local usematerials = true\n")
-                else:
-                    exporttext.write("local usematerials = false\n")
-
-                exporttext.write("local vertices = {}\n")
-                exporttext.write("local faces = {}\n")
-                exporttext.write("local normals = {}\n")
-                exporttext.write("local texturecoords = {}\n\n")
-
-                if CheckVerticies.get() == 1:
-                    exporttext.write("vertices = {\n")
-                    for line in lines:
-                        if line.startswith("v "):
-                            finalline = line.lstrip("v ")
-                            exporttext.write("{")
-                            for char in finalline:
-                                if char == (" "):
-                                    exporttext.write(",")
-                                else:
-                                    exporttext.write(char)
-                            exporttext.write("},")
-                    exporttext.write("};\n")
-                
-                if CheckFaces.get() == 1 :
-                    exporttext.write("faces = {\n")
-                    for line in lines:
-
-                        if CheckMaterials.get() == 1:
-                            if line.startswith("usemtl "):
-                                material = line.lstrip("usemtl ")
-                                material = material.rstrip()
-
-                        if line.startswith("f "):
-                            finalline = line.lstrip("f ")
-                            finalline = finalline.rstrip()
-                            exporttext.write("\n{")
-                            exporttext.write("{")
-                            for char in finalline:
-                                if char == ("/"):
-                                    exporttext.write(",")
-                                elif char == (" "):
-                                    exporttext.write("}, {")
-                                else:
-                                    exporttext.write(char)
-                            exporttext.write("},")
-
-                            if CheckMaterials.get() == 1:
-                                exporttext.write('{"'+material+'"},')
-                            
-                            exporttext.write("},")
-                    exporttext.write("};\n")
-
-                if CheckNormals.get() == 1:
-                    exporttext.write("normals = {\n")
-                    for line in lines:
-                        if line.startswith("vn "):
-                            finalline = line.lstrip("vn ")
-                            exporttext.write("{")
-                            for char in finalline:
-                                if char == (" "):
-                                    exporttext.write(",")
-                                else:
-                                    exporttext.write(char)
-                            exporttext.write("},")
-                    exporttext.write("};\n")
-
-                if CheckTextureCoords.get() == 1:
-                    exporttext.write("texturecoords = {\n")
-                    for line in lines:
-                        if line.startswith("vt "):
-                            finalline = line.lstrip("vt ")
-                            exporttext.write("{")
-                            for char in finalline:
-                                if char == (" "):
-                                   exporttext.write(",")
-                                else:
-                                    exporttext.write(char)
-                            exporttext.write("},")
-                    exporttext.write("};\n")
-
-                exporttext.write("\nreturn {vertices, faces, normals, texturecoords, usematerials};")
-
-                print("Finished OBJ Export")
-                ttk.Label(scrollable_frame, text="OBJ export finished as "+"model.lua", anchor='w').pack(fill='both')
+        objFolder = os.path.basename(obj)
+        objFolder = os.path.splitext(objFolder)[0]
+        objFile = os.path.splitext(obj)
+        objFile = objFolder+objFile[1]
+        convertOBJcode(obj, objFile, '')
+        
 
 def convertMtl():
     for mtl in mtls:

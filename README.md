@@ -21,6 +21,6 @@ The rest goes the same as with single OBJ files.
 ### Converting MTL files
 Select a MTL file with the "Open MTL File" button. No settings are needed
 
-### Credits:
+## Credits:
 * Maru -> Coding
 * Phantom Arcade -> Original artist of the drawing the icon is based off
