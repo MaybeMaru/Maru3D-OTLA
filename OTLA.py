@@ -1,12 +1,10 @@
-from distutils.log import error
-from tabnanny import check
 import tkinter as tk
 from tkinter import filedialog, Text, ttk, messagebox
 import os
 
 root = tk.Tk()
 root.iconbitmap('icon.ico')
-root.title('FNF Maru3D : Obj to Lua Array Converter')
+root.title('Maru3D : OBJ to LUA Array Converter')
 root.resizable(False, False)
 
 root.columnconfigure(0, weight=1)
@@ -50,30 +48,16 @@ def makeConsoleText(txt):
     ConsoleText = tk.Label(scrollable_frame, text=txt, anchor='w')
     ConsoleText.pack(fill='both')
 
-def clearWidgets():
-    for widget in directoryOBJFrame.winfo_children():
-        widget.destroy()
+def clearWidgets(directory):
+        for widget in directory.winfo_children():
+            widget.destroy()
 
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
-
-def clearWidgets2():
-    for widget in directoryMTLFrame.winfo_children():
-        widget.destroy()
-
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
-
-def clearWidgets3():
-    for widget in directoryOBJSequenceFrame.winfo_children():
-        widget.destroy()
-
-    for widget in scrollable_frame.winfo_children():
-        widget.destroy()
+        for widget in scrollable_frame.winfo_children():
+            widget.destroy()
 
 def addObjSequence():
 
-    clearWidgets3()
+    clearWidgets(directoryOBJSequenceFrame)
 
     objsequence.clear()
     filename =filedialog.askdirectory(initialdir="/", title="Select OBJ Sequence Frames Folder")
@@ -88,10 +72,9 @@ def addObjSequence():
     defaultOBJSequencetext = tk.Label(directoryOBJSequenceFrame, text=objsequence, bg="#ffffff")
     defaultOBJSequencetext.pack(side=tk.LEFT, fill='both')
 
-
 def addObj():
     
-    clearWidgets()
+    clearWidgets(directoryOBJFrame)
 
     objs.clear()
     filename =filedialog.askopenfilename(initialdir="/", title="Select 3D Model", 
@@ -108,7 +91,7 @@ def addObj():
 
 def addMtl():
 
-    clearWidgets2()
+    clearWidgets(directoryMTLFrame)
 
     mtls.clear()
     filename =filedialog.askopenfilename(initialdir="/", title="Select MTL", 
@@ -123,12 +106,14 @@ def addMtl():
 
     print(mtls)
 
-def convertOBJcode(path, object, exportPlace):
-    if os.path.isfile(path):
-
+def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
+        if os.path.isfile(path):
                 name, extension = os.path.splitext(object)
 
-                if extension == ".obj":
+                if not isSequence:
+                    name = 'model'
+
+                if extension == ".obj" or extension == ".txt":
 
                     folderobjframe = path
                     print(folderobjframe)
@@ -229,12 +214,22 @@ def convertOBJcode(path, object, exportPlace):
 
                     makeConsoleText("OBJ export finished as "+name+".lua")
                     makeConsoleText("In "+ dir+name+'.lua')
+                else:
+                    messagebox.showerror('Error', 'Error: ' + 'Incorrect file type')
+        else:
+            messagebox.showerror('Error', 'Error: ' + errorReason)
 
 def convertObjSequence():
-
     for sequence in objsequence:
-        for path in os.listdir(sequence):
-            convertOBJcode(os.path.join(sequence, path), path,  "frames/")
+        if os.path.isdir(sequence):
+            for path in os.listdir(sequence):
+                daPath = os.path.join(sequence, path)
+                daObject = path
+                name, extension = os.path.splitext(daObject)
+                if extension == '.obj' or extension == '.txt':
+                    convertOBJcode(daPath, daObject, 'frames/', OBJSequenceerrortext, True)
+        else:
+            messagebox.showerror('Error', 'Error: ' + OBJSequenceerrortext)
 
 def convertObj():
 
@@ -243,8 +238,8 @@ def convertObj():
         objFolder = os.path.splitext(objFolder)[0]
         objFile = os.path.splitext(obj)
         objFile = objFolder+objFile[1]
-        convertOBJcode(obj, objFile, '')
-        
+        name, extension = os.path.splitext(objFile)
+        convertOBJcode(obj, objFile, name+'/', OBJerrortext, False)
 
 def convertMtl():
     for mtl in mtls:
@@ -287,8 +282,7 @@ def convertMtl():
 
                 exporttext.write("};")
                 exporttext.write("\nreturn {materials,};")
-                print("Finished MTL Export")
-                ttk.Label(scrollable_frame, text="MTL export finished as "+"materials.lua", anchor='w').pack(fill='both')
+                makeConsoleText("MTL export finished as "+"materials.lua")
 
 #Create Frames, Buttons n shit
 
