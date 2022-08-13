@@ -1,10 +1,10 @@
 import tkinter as tk
-from tkinter import filedialog, Text, ttk, messagebox
+from tkinter import filedialog, ttk, messagebox
 import os
 
 root = tk.Tk()
 root.iconbitmap('icon.ico')
-root.title('Maru3D : OBJ to LUA Array Converter')
+root.title('Maru3D : OBJ To LUA Array Converter')
 root.resizable(False, False)
 
 root.columnconfigure(0, weight=1)
@@ -138,20 +138,23 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                         exporttext.write("local normals = {}\n")
                         exporttext.write("local texturecoords = {}\n\n")
 
+                        #Get Verticies Code
                         if CheckVerticies.get() == 1:
                             exporttext.write("vertices = {\n")
                             for line in lines:
                                 if line.startswith("v "):
                                     finalline = line.lstrip("v ")
+                                    finalline = finalline.rstrip()
                                     exporttext.write("{")
                                     for char in finalline:
                                         if char == (" "):
                                             exporttext.write(",")
                                         else:
                                             exporttext.write(char)
-                                    exporttext.write("},")
+                                    exporttext.write("},\n")
                             exporttext.write("};\n")
                 
+                        #Get Faces Code
                         if CheckFaces.get() == 1 :
                             exporttext.write("faces = {\n")
                             for line in lines:
@@ -165,7 +168,7 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                                     finalline = line.lstrip("f ")
                                     finalline = finalline.rstrip()
                                     finalline = finalline.replace('//','/')
-                                    exporttext.write("\n{")
+                                    exporttext.write("{")
                                     exporttext.write("{")
                                     for char in finalline:
                                         if char == ("/"):
@@ -179,35 +182,39 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                                     if CheckMaterials.get() == 1:
                                         exporttext.write('{"'+material+'"},')
                             
-                                    exporttext.write("},")
+                                    exporttext.write("},\n")
                             exporttext.write("};\n")
 
+                        #Get Normals Code
                         if CheckNormals.get() == 1:
                             exporttext.write("normals = {\n")
                             for line in lines:
                                 if line.startswith("vn "):
                                     finalline = line.lstrip("vn ")
+                                    finalline = finalline.rstrip()
                                     exporttext.write("{")
                                     for char in finalline:
                                         if char == (" "):
                                             exporttext.write(",")
                                         else:
                                             exporttext.write(char)
-                                    exporttext.write("},")
+                                    exporttext.write("},\n")
                             exporttext.write("};\n")
 
+                        #Get Texture Coords Code
                         if CheckTextureCoords.get() == 1:
                             exporttext.write("texturecoords = {\n")
                             for line in lines:
                                 if line.startswith("vt "):
                                     finalline = line.lstrip("vt ")
+                                    finalline = finalline.rstrip()
                                     exporttext.write("{")
                                     for char in finalline:
                                         if char == (" "):
                                            exporttext.write(",")
                                         else:
                                             exporttext.write(char)
-                                    exporttext.write("},")
+                                    exporttext.write("},\n")
                             exporttext.write("};\n")
 
                         exporttext.write("\nreturn {vertices, faces, normals, texturecoords, usematerials};")
@@ -215,7 +222,7 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                     makeConsoleText("OBJ export finished as "+name+".lua")
                     makeConsoleText("In "+ dir+name+'.lua')
                 else:
-                    messagebox.showerror('Error', 'Error: ' + 'Incorrect file type')
+                    messagebox.showerror('Error', 'Error: ' + 'Incorrect file type\nOnly OBJ and TXT files are allowed')
         else:
             messagebox.showerror('Error', 'Error: ' + errorReason)
 
@@ -313,6 +320,7 @@ frame.place(relwidth=0.5, relheight=0.4, x=30, y=235)
 framemtl = tk.Frame(root, bg="#bdbdbd")
 framemtl.place(relwidth=0.40, relheight=0.576, x=450, y=235)
 
+#Export Buttons Frames
 exportOBJSequencebuttonFrame = tk.Frame(root, bg="#bdbdbd")
 exportOBJSequencebuttonFrame.place(relwidth=0.16, relheight=0.121, x=30, y=510)
 
@@ -322,30 +330,21 @@ exportOBJbuttonFrame.place(relwidth=0.16, relheight=0.121, x=167, y=510)
 exportMTLbuttonFrame = tk.Frame(root, bg="#bdbdbd")
 exportMTLbuttonFrame.place(relwidth=0.16, relheight=0.121, x=303, y=510)
 
-openOBJSequencefile = tk.Button(buttonOBJSequenceFrame, text="Open OBJ Sequence Folder", padx=100, pady=10, fg="black", bg = "white" , command=addObjSequence)
-openOBJSequencefile.pack()
+#Open Buttons
+openOBJSequencefile = tk.Button(buttonOBJSequenceFrame, text="Open OBJ Sequence Folder", padx=100, pady=10, fg="black", bg = "white" , command=addObjSequence).pack()
+openOBJfile = tk.Button(buttonOBJFrame, text="Open OBJ File", padx=100, pady=10, fg="black", bg = "white" , command=addObj).pack()
+openMTLfile = tk.Button(buttonMTLFrame, text="Open MTL File", padx=100, pady=10, fg="black", bg = "white" , command=addMtl).pack()
 
-openOBJfile = tk.Button(buttonOBJFrame, text="Open OBJ File", padx=100, pady=10, fg="black", bg = "white" , command=addObj)
-openOBJfile.pack()
-
-openMTLfile = tk.Button(buttonMTLFrame, text="Open MTL File", padx=100, pady=10, fg="black", bg = "white" , command=addMtl)
-openMTLfile.pack()
-
-convertFile = tk.Button(exportOBJSequencebuttonFrame, text="Convert OBJ Sequence", padx=150, pady=30, fg="black", bg = "white", command=convertObjSequence)
-convertFile.pack()
-
-convertFile = tk.Button(exportOBJbuttonFrame, text="Convert OBJ", padx=150, pady=30, fg="black", bg = "white", command=convertObj)
-convertFile.pack()
-
-convertFile = tk.Button(exportMTLbuttonFrame, text="Convert MTL", padx=150, pady=30, fg="black", bg = "white", command=convertMtl)
-convertFile.pack()
+#Convert Buttons
+convertFile = tk.Button(exportOBJSequencebuttonFrame, text="Convert OBJ Sequence", padx=150, pady=30, fg="black", bg = "white", command=convertObjSequence).pack()
+convertFile = tk.Button(exportOBJbuttonFrame, text="Convert OBJ", padx=150, pady=30, fg="black", bg = "white", command=convertObj).pack()
+convertFile = tk.Button(exportMTLbuttonFrame, text="Convert MTL", padx=150, pady=30, fg="black", bg = "white", command=convertMtl).pack()
 
 #Add Version Text
 canvas.create_text(30, 20, text=version, fill="white", font=('Arial 10'), anchor='w')
 canvas.pack(fill='both')
 
 #Default Values At Start
-
 objsequence.append(OBJSequenceerrortext)
 defaultOBJSequencetext = tk.Label(directoryOBJSequenceFrame, text=objsequence, bg="#ffffff")
 defaultOBJSequencetext.pack(side=tk.LEFT, fill='both')
@@ -360,25 +359,19 @@ def widgetSpace():
     ttk.Label(framemtl, text='', justify='center').pack(fill='x')
 
 #Create Checkbuttons
-
 ttk.Label(framemtl, text='OBJ Export Settings', justify='center').pack(fill='x')
 widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Vertices", variable = CheckVerticies, onvalue = 1, offvalue = 0).pack(fill='x')
+widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Faces", variable = CheckFaces, onvalue = 1, offvalue = 0).pack(fill='x')
+widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Normals", variable = CheckNormals, onvalue = 1, offvalue = 0).pack(fill='x')
+widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Texture Coords", variable = CheckTextureCoords, onvalue = 1, offvalue = 0).pack(fill='x')
+widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Use Materials", variable = CheckMaterials, onvalue = 1, offvalue = 0).pack(fill='x')
 
-C1 = ttk.Checkbutton(framemtl, text = "Vertices", variable = CheckVerticies, onvalue = 1, offvalue = 0)
-C1.pack(fill='x')
-widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Faces", variable = CheckFaces, onvalue = 1, offvalue = 0)
-C1.pack(fill='x')
-widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Normals", variable = CheckNormals, onvalue = 1, offvalue = 0)
-C1.pack(fill='x')
-widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Texture Coords", variable = CheckTextureCoords, onvalue = 1, offvalue = 0)
-C1.pack(fill='x')
-widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Use Materials", variable = CheckMaterials, onvalue = 1, offvalue = 0)
-C1.pack(fill='x')
-
+#Console
 container = ttk.Frame(frame)
 scrollcanvas = tk.Canvas(container)
 scrollbar = ttk.Scrollbar(container, orient="vertical", command=scrollcanvas.yview)
