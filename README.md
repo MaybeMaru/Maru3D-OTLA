@@ -8,7 +8,7 @@ For animations it also can take folders with OBJ Sequence files.
 * Faces
 * Normals
 * Texture Coordinates
-* Diffuse Colored Materials
+* Diffuse Colored and Textured Materials
 * OBJ Sequences
 
 ## How to use
