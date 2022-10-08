@@ -152,7 +152,7 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                                         if letter == " ":
                                             vert_count = 1 + vert_count
                                     if vert_count > 3:
-                                        exporttext.write('--More than 3 vertex, might not work correctly ')   
+                                        exporttext.write('--More than 3 vertex ('+vert_count+'), might not work correctly ')   
 
                                     finalline = finalline.replace(" ", "}, {")  
                                     exporttext.write("{ vertex = {{"+finalline+"}},")
