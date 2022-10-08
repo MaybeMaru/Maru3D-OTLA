@@ -10,21 +10,17 @@ root.resizable(False, False)
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=3)
 
-version = 'Maru3D OTLA ' + 'v0.5'
+version = 'Maru3D OTLA ' + 'v0.5.1'
 errorMessages = ['No OBJ Sequence Folder Loaded', 'No OBJ File Loaded', 'No MTL File Loaded']
 
 #Setup shit
-objsequence=[]; objs = []; mtls = []
+objsequence, objs, mtls = [],[],[]
 
 s = ttk.Style()
 s.configure('.', font=('Arial', 11))
 
 #CheckBoxes variables
-CheckVerticies = tk.IntVar()
-CheckFaces = tk.IntVar()
-CheckNormals = tk.IntVar()
-CheckTextureCoords = tk.IntVar()
-CheckMaterials = tk.IntVar()
+CheckVerticies, CheckFaces, CheckNormals, CheckTextureCoords, CheckMaterials = tk.IntVar(),tk.IntVar(),tk.IntVar(),tk.IntVar(),tk.IntVar()
 
 def makeConsoleText(txt):
     print(txt)
@@ -125,7 +121,8 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                             exporttext.write("vertices = {\n")
                             for line in lines:
                                 if line.startswith("v "):
-                                    finalline = line.lstrip("v ")
+                                    finalline = line.removeprefix("v ")
+                                    finalline = finalline.removeprefix(" ")
                                     finalline = finalline.rstrip()
                                     finalline = finalline.replace(" ", ",")  
                                     exporttext.write("{"+finalline)
@@ -139,21 +136,30 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
 
                                 if CheckMaterials.get() == 1:
                                     if line.startswith("usemtl "):
-                                        material = line.lstrip("usemtl")
+                                        material = line.removeprefix("usemtl ")
                                         material = material.rstrip()
                                         material = material.replace(" ", "")
         
                                 if line.startswith("f "):
-                                    finalline = line.lstrip("f ")
+                                    vert_count = 1
+
+                                    finalline = line.removeprefix("f ")
                                     finalline = finalline.rstrip()
                                     finalline = finalline.replace('//','/')
-                                    finalline = finalline.replace("/", ",")  
+                                    finalline = finalline.replace("/", ",")
+
+                                    for letter in finalline:
+                                        if letter == " ":
+                                            vert_count = 1 + vert_count
+                                    if vert_count > 3:
+                                        exporttext.write('--More than 3 vertex, might not work correctly ')   
+
                                     finalline = finalline.replace(" ", "}, {")  
-                                    exporttext.write("{{"+finalline+"},")
+                                    exporttext.write("{ vertex = {{"+finalline+"}},")
         
                                     if CheckMaterials.get() == 1:
-                                        exporttext.write('{"'+material+'"},')
-                            
+                                        exporttext.write(' mat = "'+material+'",')
+
                                     exporttext.write("},\n")
                             exporttext.write("};\n")
 
@@ -162,7 +168,7 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                             exporttext.write("normals = {\n")
                             for line in lines:
                                 if line.startswith("vn "):
-                                    finalline = line.lstrip("vn ")
+                                    finalline = line.removeprefix("vn ")
                                     finalline = finalline.rstrip()
                                     finalline = finalline.replace(" ", ",")  
                                     exporttext.write("{"+finalline)
@@ -174,14 +180,14 @@ def convertOBJcode(path, object, exportPlace, errorReason, isSequence):
                             exporttext.write("texturecoords = {\n")
                             for line in lines:
                                 if line.startswith("vt "):
-                                    finalline = line.lstrip("vt ")
+                                    finalline = line.removeprefix("vt ")
                                     finalline = finalline.rstrip()
                                     finalline = finalline.replace(" ", ",")  
                                     exporttext.write("{"+finalline)
                                     exporttext.write("},\n")
                             exporttext.write("};\n")
 
-                        exporttext.write("\nreturn {vertices, faces, normals, texturecoords, usematerials};")
+                        exporttext.write("\nreturn {vertices = vertices, faces = faces, normals = normals, textcoords = texturecoords, usemats = usematerials};")
 
                     makeConsoleText("OBJ export finished as "+name+".lua")
                     makeConsoleText("In "+ dir+name+'.lua')
@@ -237,6 +243,7 @@ def convertMtl():
                     exporttext.write("\nmaterials = {\n")
                     boob = 0; ass = 0
                     for line in lines:
+                        line = line.replace("\t", "")
 
                         #New Material
                         if line.startswith("newmtl "):
@@ -246,30 +253,34 @@ def convertMtl():
                                 ass = boob
                             boob = boob+1
 
-                            finalline = line.lstrip("newmtl")
+                            finalline = line.removeprefix("newmtl ")
                             finalline = finalline.rstrip()
                             finalline = finalline.replace(" ", "")
                             daMaterial = finalline
-                            exporttext.write('{{"'+daMaterial+'"},')
+                            exporttext.write('{ name = "'+daMaterial+'",')
 
                         #Solid Color
                         if line.startswith("Kd "):
-                            finalline = line.lstrip("Kd ")
+                            finalline = line.removeprefix("Kd ")
                             finalline = finalline.rstrip()
+
                             finalline = finalline.replace(" ", ",")   
-                            exporttext.write('{'+finalline+"},")
+                            exporttext.write(' kd = {'+finalline+"},")
 
                         #Texture
                         if line.startswith("map_Kd "):
-                            finalline = line.lstrip("map_Kd ")
+                            finalline = line.removeprefix("map_Kd ")
                             finalline = finalline.rstrip()
+                            print(finalline)
                             finalline = '"'+finalline+'"'
+                            
                             finalline = finalline.replace(" ", ",")    
-                            exporttext.write('{'+finalline+"},")
+                            exporttext.write(' map_kd = '+finalline+",")
 
                     exporttext.write("}\n};")
-                    exporttext.write("\nreturn {materials,};")
+                    exporttext.write("\nreturn materials;")
                     makeConsoleText("MTL export finished as "+"materials.lua")
+                    makeConsoleText("In "+ dir+'/materials.lua')
             else:
                 messagebox.showerror('Error', 'Error: ' + 'Incorrect file type\nOnly MTL and TXT files are allowed')
 
@@ -329,11 +340,11 @@ defaultMTLtext.pack(side=tk.LEFT, fill='both')
 def widgetSpace():
     ttk.Label(framemtl, text='', justify='center').pack(fill='x')
 
-ttk.Label(framemtl, text='OBJ Export Settings', justify='center').pack(fill='x'); widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Vertices", variable = CheckVerticies, onvalue = 1, offvalue = 0).pack(fill='x'); widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Faces", variable = CheckFaces, onvalue = 1, offvalue = 0).pack(fill='x'); widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Normals", variable = CheckNormals, onvalue = 1, offvalue = 0).pack(fill='x'); widgetSpace()
-C1 = ttk.Checkbutton(framemtl, text = "Texture Coords", variable = CheckTextureCoords, onvalue = 1, offvalue = 0).pack(fill='x'); widgetSpace()
+ttk.Label(framemtl, text='OBJ Export Settings', justify='center').pack(fill='x');                                                   widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Vertices", variable = CheckVerticies, onvalue = 1, offvalue = 0).pack(fill='x');             widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Faces", variable = CheckFaces, onvalue = 1, offvalue = 0).pack(fill='x');                    widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Normals", variable = CheckNormals, onvalue = 1, offvalue = 0).pack(fill='x');                widgetSpace()
+C1 = ttk.Checkbutton(framemtl, text = "Texture Coords", variable = CheckTextureCoords, onvalue = 1, offvalue = 0).pack(fill='x');   widgetSpace()
 C1 = ttk.Checkbutton(framemtl, text = "Use Materials", variable = CheckMaterials, onvalue = 1, offvalue = 0).pack(fill='x')
 
 #Console
