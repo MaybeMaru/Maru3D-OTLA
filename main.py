@@ -3,7 +3,7 @@ from tkinter import filedialog, ttk, messagebox
 import os
 
 root = tk.Tk()
-root.iconbitmap('icon.ico')
+#root.iconbitmap('icon.ico')
 root.title('Maru3D : OBJ To LUA Array Converter')
 root.resizable(False, False)
 
